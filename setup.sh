@@ -1,6 +1,9 @@
 #!/bin/bash
 declare -i verbosity=0
 declare MODE=""
+declare FORCE=false
+
+
 while getopts ":h,:u,:i,:v" opt; do
   case $opt in
     h)
@@ -64,12 +67,23 @@ function setupZSH() {
     fi
 
 # setup powerlevel10k
-    if [[ ! -d ~/.oh-my-zsh/custom/themes/powerlevel10k ]]; then
-      echo "$HOME/.oh-my-zsh/custom/themes/powerlevel10k not found. Installing..."
-      git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
-    fi
+if [[ ! -d ~/.oh-my-zsh/custom/themes/powerlevel10k ]]; then
+  echo "$HOME/.oh-my-zsh/custom/themes/powerlevel10k not found. Installing..."
+  git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
+fi
 }
 
+function installLinuxSpecific() {
+  # link chromium-flags
+  ln -s -f "$DIR/chromium-flags.conf" ~/.config/chromium-flags.conf
+
+  if [ $FORCE ] || [[ ! -h ~/.config/onedrive/config ]]; then
+    # link onedrive for linux client config
+    ln -s -f "$DIR/Linux_Onedrive_Config" ~/.config/onedrive/config
+  fi
+
+
+}
 function runInstall() {
   echo "starting install..."
 
@@ -102,15 +116,21 @@ function runInstall() {
     echo "symlinking ~/.alacritty.yml"
     ln -s -f "$DIR/alacritty.yml" ~/.alacritty.yml
   fi
+
+
 }
 case $MODE in
-	"install")
-		runInstall
-		;;
-	"uninstall")
-		;;
-	*)
-		echo "neither install nor uninstall specified, exiting with error"
-		exit 1
-		;;
+  "install")
+    runInstall
+
+    if [[ "$OSTYPE" == "linux-gnu" ]]; then
+      installLinuxSpecific
+    fi
+    ;;
+  "uninstall")
+    ;;
+  *)
+    echo "neither install nor uninstall specified, exiting with error"
+    exit 1
+    ;;
 esac
