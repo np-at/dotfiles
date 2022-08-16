@@ -50,7 +50,7 @@ if type brew &>/dev/null; then
   compinit
 fi
 # Path to your oh-my-zsh installation.
-alias vs="$HOME/.myprofile/ldkeys.sh -l"
+alias vs="$HOME/.dotfiles/bin/ldkeys.sh -l"
 
 export ZSH="$HOME/.oh-my-zsh"
 
@@ -124,20 +124,20 @@ plugins=(
 	vundle
 	zsh-syntax-highlighting
     mosh
-    tmux
+#    tmux
     docker-compose
     docker
-    jsontools
+#    jsontools
     nvm
     nmap
     rsync
-    tmux 
+#    tmux 
     python
     ssh-agent
-    kubectl
-    helm
+ #   kubectl
+#    helm
     web-search
-    aws
+#    aws
     ripgrep
 )
 #ZSH_DISABLE_COMPFIX=true
@@ -198,3 +198,14 @@ export PATH="/usr/local/opt/mysql-client/bin:$PATH"
 
 # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
 export PATH="$PATH:$HOME/.rvm/bin"
+
+## Useful aliases
+# Replace ls with exa
+alias ls='exa -al --color=always --group-directories-first --icons' # preferred listing
+alias la='exa -a --color=always --group-directories-first --icons'  # all files and dirs
+alias ll='exa -l --color=always --group-directories-first --icons'  # long format
+alias lt='exa -aT --color=always --group-directories-first --icons' # tree listing
+alias l.="exa -a | egrep '^\.'"                                     # show only dotfiles
+
+test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
+

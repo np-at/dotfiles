@@ -4,6 +4,16 @@ set fish_greeting
 set VIRTUAL_ENV_DISABLE_PROMPT "1"
 set -x MANPAGER "sh -c 'col -bx | bat -l man -p'"
 
+switch (uname)
+    case Linux
+            echo Hi Tux!
+    case Darwin
+            echo Hi Hexley!
+    case FreeBSD NetBSD DragonFly
+            echo Hi Beastie!
+    case '*'
+            echo Hi, stranger!
+end
 ## Export variable need for qt-theme
 if type "qtile" >> /dev/null 2>&1
    set -x QT_QPA_PLATFORMTHEME "qt5ct"
@@ -37,11 +47,21 @@ end
 
 ## Starship prompt
 if status --is-interactive
-   source ("/usr/bin/starship" init fish --print-full-init | psub)
+   if test -f /usr/bin/starship
+    source ("/usr/bin/starship" init fish --print-full-init | psub)
+   else if test -f /usr/local/bin/starship
+     source ("/usr/local/bin/starship" init fish --print-full-init | psub)
+   else
+       echo "fail!"
+       exit 1
+   end
 end
 
 ## Advanced command-not-found hook
-source /usr/share/doc/find-the-command/ftc.fish
+if test -f /usr/share/doc/find-the-command/ftc.fish
+  source /usr/share/doc/find-the-command/ftc.fish
+end
+
 
 ## Functions
 # Functions needed for !! and !$ https://github.com/oh-my-fish/plugin-bang-bang
@@ -190,18 +210,43 @@ function fish_user_key_bindings
     end
 end
 
-alias vs "~/.myprofile/bin/ldkeys.sh"
-alias sy "/usr/bin/onedrive --synchronize"
+if test -d ~/.myprofile
+  alias vs ~/.myprofile/bin/ldkeys.sh
+else if test -d ~/.dotfiles
+  alias vs ~/.dotfiles/bin/ldkeys.sh
+else
+  echo "WARN: unable to locate dotfile directory"
+end
+
+
+# # set os specific aliases
+switch (uname)
+    case Linux
+                        
+            alias sy "/usr/bin/onedrive --synchronize"
+            alias which 'alias | /usr/bin/which --tty-only --read-alias --show-dot --show-tilde'
+    case Darwin
+
+            if test -d /Applications/VeraCrypt.app/Contents/MacOS
+              if not contains -- /Applications/VeraCrypt.app/Contents/MacOS
+                set -p PATH /Applications/VeraCrypt.app/Contents/MacOS
+              end
+            end
+
+    case FreeBSD NetBSD DragonFly
+            echo Hi Beastie!
+    case '*'
+            echo Hi, stranger!
+end
 
 set -gx MOCWORD_DATA /usr/share/mocword_data.sqlite
 
-alias which 'alias | /usr/bin/which --tty-only --read-alias --show-dot --show-tilde'
 if test -d ~/.cargo/bin
   if not contains -- ~/.cargo/bin
     set -p PATH ~/.cargo/bin
   end
 end
-rvm default
+# rvm default
 
 if test -d ~/esp/xtensa-esp32-elf/bin
   if not contains -- ~/exp/xtensa-esp32-elf/bin
@@ -226,3 +271,4 @@ function urldecode
     set url_encoded (string replace -a '+' ' ' $argv[1])
     printf '%b' (string replace -a '%' '\\x' $url_encoded)
 end
+test -e /Users/np/.iterm2_shell_integration.fish ; and source /Users/np/.iterm2_shell_integration.fish ; or true

@@ -55,19 +55,19 @@ function setupZSH() {
     fi
 
     # Install zsh-autosuggestions
-    if [[ ! -d ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions ]]; then
+    if [[ ! -d "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-autosuggestions" ]]; then
       echo "$HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions not found. Installing..."
-      git clone https://github.com/zsh-users/zsh-autosuggestions "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions"
+      git clone https://github.com/zsh-users/zsh-autosuggestions "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-autosuggestions"
     fi
 
     # Install zsh-syntax-highlighting
-    if [[ ! -d ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting ]]; then
+    if [[ ! -d "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting" ]]; then
       echo "$HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting not found. Installing..."
-      git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting"
+      git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting"
     fi
 
 # setup powerlevel10k
-if [[ ! -d ~/.oh-my-zsh/custom/themes/powerlevel10k ]]; then
+if [[ ! -d "$HOME/.oh-my-zsh/custom/themes/powerlevel10k" ]]; then
   echo "$HOME/.oh-my-zsh/custom/themes/powerlevel10k not found. Installing..."
   git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
 fi
@@ -83,6 +83,13 @@ function installLinuxSpecific() {
   fi
 
 
+}
+
+function installHomebrewItems() {
+  # install regular homebrew items
+  brew install $(cat brewlist | awk '{ if ($0 ~ /\[casks\]/) { i++; } else {if (i == 0 && $0 !~ /^#/ && $0 !~ /^\s+/ && $0 != "") print $0 } }' );
+  # install brew casks
+  brew install --cask $(cat brewlist | awk '{ if ($0 ~ /\[casks\]/) { i++; } else {if (i > 0 && $0 !~ /^#/ && $0 !~ /^\s+/ && $0 != "") print $0 } }' );
 }
 function runInstall() {
   echo "starting install..."

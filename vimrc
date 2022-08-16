@@ -1,5 +1,7 @@
 set encoding=utf-8
-
+if &shell =~# 'fish$'
+    set shell=sh
+endif
 set nocompatible              " be iMproved, required
 " filetype off                  " required
 " set termguicolors
@@ -51,7 +53,7 @@ endfunc
 
 let mapleader = ","
 set showcmd
-let custprofdir = "$HOME/.myprofile"
+let custprofdir = "$HOME/.dotfiles"
 
 
 let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
@@ -112,7 +114,7 @@ Plug 'tpope/vim-surround'
 " Plugin 'Vimjas/vim-python-pep8-indent'
 
 " Plugin 'PProvost/vim-ps1'
-
+Plug 'khaveesh/vim-fish-syntax'
 Plug 'rafi/awesome-vim-colorschemes'
 Plug 'sainnhe/vim-color-forest-night'
 " Plugin 'vim-syntastic/syntastic'
@@ -144,10 +146,10 @@ call plug#end()
 " execute 'source' custprofdir . '/extended.vim'
 let g:sierra_Nevada = 1
 colorscheme sierra 
-source ~/.myprofile/basic.vim
-" source "$HOME/.myprofile/filetypes.vim"
-source ~/.myprofile/plugins_config.vim
-source ~/.myprofile/extended.vim
+source ~/.dotfiles/basic.vim
+" source "$HOME/.dotfiles/filetypes.vim"
+source ~/.dotfiles/plugins_config.vim
+source ~/.dotfiles/extended.vim
 
 execute 'source' custprofdir . '/my_configs.vim'
 " try
