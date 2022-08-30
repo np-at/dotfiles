@@ -11,6 +11,7 @@ syn on
 " set dictionary?
 " set dictionary+=/usr/share/hunspell
 
+set relativenumber 
 
 
 

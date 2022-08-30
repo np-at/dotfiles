@@ -210,6 +210,7 @@ function fish_user_key_bindings
     end
 end
 
+
 if test -d ~/.myprofile
   alias vs ~/.myprofile/bin/ldkeys.sh
 else if test -d ~/.dotfiles
