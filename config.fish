@@ -220,7 +220,7 @@ else
 end
 
 
-# # set os specific aliases
+# # set os specific stuff
 switch (uname)
     case Linux
                         
@@ -233,6 +233,8 @@ switch (uname)
                 set -p PATH /Applications/VeraCrypt.app/Contents/MacOS
               end
             end
+            test -e /Users/np/.iterm2_shell_integration.fish ; and source /Users/np/.iterm2_shell_integration.fish ; or true
+
 
     case FreeBSD NetBSD DragonFly
             echo Hi Beastie!
@@ -242,6 +244,12 @@ end
 
 set -gx MOCWORD_DATA /usr/share/mocword_data.sqlite
 
+
+if test -d ~/.dotnet/tools
+  if not contains -- ~/.dotnet/tools
+    set -p PATH ~/.dotnet/tools
+  end
+end
 if test -d ~/.cargo/bin
   if not contains -- ~/.cargo/bin
     set -p PATH ~/.cargo/bin
@@ -272,4 +280,3 @@ function urldecode
     set url_encoded (string replace -a '+' ' ' $argv[1])
     printf '%b' (string replace -a '%' '\\x' $url_encoded)
 end
-test -e /Users/np/.iterm2_shell_integration.fish ; and source /Users/np/.iterm2_shell_integration.fish ; or true
