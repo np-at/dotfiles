@@ -117,17 +117,24 @@ Plug 'tpope/vim-surround'
 " Plugin 'PProvost/vim-ps1'
 Plug 'khaveesh/vim-fish-syntax'
 Plug 'rafi/awesome-vim-colorschemes'
-Plug 'sainnhe/vim-color-forest-night'
+" Plug 'sainnhe/vim-color-forest-night'
 " Plugin 'vim-syntastic/syntastic'
-Plug 'Shougo/pum.vim'
 Plug 'Shougo/ddc.vim'
+" Plug 'Shougo/ddc-ui-native'
 Plug 'vim-denops/denops.vim'
+
+" Plug 'Shougo/pum.vim'
+
+Plug 'Shougo/ddc-ui-native'
+" Plug 'Shougo/ddc-ui-pum'
 Plug 'Shougo/ddc-mocword'
+
 Plug 'Shougo/ddc-matcher_head'
 Plug 'Shougo/ddc-sorter_rank'
 Plug 'Shougo/ddc-around'
 Plug 'Shougo/ddc-cmdline'
 Plug 'Shougo/neco-vim'
+
 Plug 'statiolake/ddc-ale'
 Plug 'LumaKernel/ddc-file'
 Plug 'Shougo/ddc-omni'
@@ -147,10 +154,10 @@ call plug#end()
 " execute 'source' custprofdir . '/extended.vim'
 let g:sierra_Nevada = 1
 colorscheme sierra 
-source ~/.dotfiles/basic.vim
+" source ~/.dotfiles/basic.vim
 " source "$HOME/.dotfiles/filetypes.vim"
-source ~/.dotfiles/plugins_config.vim
-source ~/.dotfiles/extended.vim
+" source ~/.dotfiles/plugins_config.vim
+" source ~/.dotfiles/extended.vim
 
 execute 'source' custprofdir . '/my_configs.vim'
 " try
@@ -165,3 +172,5 @@ endif
 
 set mouse=a
 set number
+
+call ddc#enable()

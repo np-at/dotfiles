@@ -26,21 +26,21 @@ set -U __done_notification_urgency_level low
 
 ## Environment setup
 # Apply .profile: use this to put fish compatible .profile stuff in
-if test -f ~/.fish_profile
-  source ~/.fish_profile
+if test -f "$HOME/.fish_profile"
+  source "$HOME/.fish_profile"
 end
 
 # Add ~/.local/bin to PATH
 if test -d ~/.local/bin
-    if not contains -- ~/.local/bin $PATH
-        set -p PATH ~/.local/bin
+    if not contains -- "$HOME/.local/bin" $PATH
+        set -p PATH "$HOME/.local/bin"
     end
 end
 
 # Add depot_tools to PATH
 if test -d ~/Applications/depot_tools
-    if not contains -- ~/Applications/depot_tools $PATH
-        set -p PATH ~/Applications/depot_tools
+    if not contains -- "$HOME/Applications/depot_tools" $PATH
+        set -p PATH "$HOME/Applications/depot_tools"
     end
 end
 
@@ -122,7 +122,7 @@ alias lt='exa -aT --color=always --group-directories-first --icons' # tree listi
 alias l.="exa -a | egrep '^\.'"                                     # show only dotfiles
 
 # Replace some more things with better alternatives
-alias cat='bat --style header --style rules --style snip --style changes --style header'
+alias cat='bat --style header --style rule --style snip --style changes --style header'
 [ ! -x /usr/bin/yay ] && [ -x /usr/bin/paru ] && alias yay='paru'
 
 # Common use
@@ -192,9 +192,9 @@ if test -d /usr/local/go/bin
         set -p PATH /usr/local/go/bin
   end
 end
-if test -d ~/go/bin
- if not contains -- ~/go/bin $PATH
-   set -p PATH ~/go/bin
+if test -d "$HOME/go/bin"
+ if not contains -- "$HOME/go/bin" $PATH
+   set -p PATH "$HOME/go/bin"
  end
 end
 
@@ -233,7 +233,9 @@ switch (uname)
                 set -p PATH /Applications/VeraCrypt.app/Contents/MacOS
               end
             end
-            test -e /Users/np/.iterm2_shell_integration.fish ; and source /Users/np/.iterm2_shell_integration.fish ; or true
+            if test -e /Users/np/.iterm2_shell_integration.fish
+              source /Users/np/.iterm2_shell_integration.fish;
+            end
 
 
     case FreeBSD NetBSD DragonFly
@@ -244,22 +246,27 @@ end
 
 set -gx MOCWORD_DATA /usr/share/mocword_data.sqlite
 
-
-if test -d ~/.dotnet/tools
-  if not contains -- ~/.dotnet/tools
-    set -p PATH ~/.dotnet/tools
+if test -d /usr/local/opt/gnu-tar/libexec/gnubin
+  if not contains -- /usr/local/opt/gnu-tar/libexec/gnubin
+    set -p PATH /usr/local/opt/gnu-tar/libexec/gnubin
   end
 end
-if test -d ~/.cargo/bin
-  if not contains -- ~/.cargo/bin
-    set -p PATH ~/.cargo/bin
+
+if test -d "$HOME/.dotnet/tools"
+  if not contains -- "$HOME/.dotnet/tools"
+    set -p PATH "$HOME/.dotnet/tools"
+  end
+end
+if test -d "$HOME/.cargo/bin"
+  if not contains -- "$HOME/.cargo/bin"
+    set -p PATH "$HOME/.cargo/bin"
   end
 end
 # rvm default
 
 if test -d ~/esp/xtensa-esp32-elf/bin
-  if not contains -- ~/exp/xtensa-esp32-elf/bin
-    set -p PATH ~/esp/xtensa-esp32-elf/bin
+  if not contains -- "$HOME/exp/xtensa-esp32-elf/bin"
+    set -p PATH "$HOME/esp/xtensa-esp32-elf/bin"
   end
 end
 
@@ -280,3 +287,4 @@ function urldecode
     set url_encoded (string replace -a '+' ' ' $argv[1])
     printf '%b' (string replace -a '%' '\\x' $url_encoded)
 end
+nvm use --silent

@@ -21,49 +21,50 @@ else
 endif
 
 " inoremap <expr><C-space> ddc#map#can_complete() ? ddc#map#complete() : '<C-space>'
-
-call ddc#custom#patch_global('completionMenu','pum.vim')
-call ddc#custom#patch_global('completionMode','popupmenu')
+call ddc#custom#patch_global('ui','native')
+" call ddc#custom#patch_global('completionMenu','pum.vim')
+" call ddc#custom#patch_global('completionMode','popupmenu')
 """""""""""""""""""""""""""""""""""""""""
 " pum.vim bindings
 "
 """"""""""""""""""""""""""""
 
 " <TAB>: completion.
-" inoremap <silent><expr> <TAB> ddc#map#pum_visible() ? '<C-n>' :  (col('.') <= 1 <Bar><Bar> getline('.')[col('.') - 2] =~# '\s') ? '<TAB>' : ddc#map#manual_complete()
+inoremap <silent><expr> <TAB> pumvisible() ? '<C-n>' :  (col('.') <= 1 <Bar><Bar> getline('.')[col('.') - 2] =~# '\s') ? '<TAB>' : ddc#map#manual_complete()
 
-inoremap <expr><TAB> ddc#map#pum_visible() ? pum#map#select_relative(+1) :  '<TAB>'
+inoremap <expr><TAB> pumvisible() ? pum#map#select_relative(+1) :  '<TAB>'
 
 " <S-TAB>: completion back
 
-inoremap <expr><S-TAB> ddc#map#pum_visible() ? pum#map#select_relative(-1) :  '<S-TAB>'
+inoremap <expr><S-TAB> pumvisible() ? pum#map#select_relative(-1) :  '<S-TAB>'
 
 " <CR>: Select completion item if pum visible
 "
-inoremap <expr><CR> ddc#map#pum_visible() ? pum#map#confirm() : '<CR>'
+inoremap <expr><CR> pumvisible() ? pum#map#confirm() : '<CR>'
 
 
 " Up/Down + j /k Key bindings for pum.vim menu selection
-" inoremap <expr><Down> ddc#map#pum_visible() ? pum#map#select_relative(+1) : '<Down>'
-" inoremap <expr><Up> ddc#map#pum_visible() ? pum#map#select_relative(-1) : '<Up>'
-" imap <expr><Down> ddc#map#pum_visible() ? pum#map#cancel() : '<Down>'
-
-
-inoremap <expr><Up> ddc#map#pum_visible() ? ( pum#complete_info().selected >= 0 ? pum#map#select_relative(-1) : pum#map#cancel() ) : '<Up>'
-inoremap <expr><Down> ddc#map#pum_visible() ? ( pum#complete_info().selected >= 0 ? pum#map#select_relative(+1) : pum#map#cancel() ) : '<Down>'
+" inoremap <expr><Down> pumvisible() ? pum#map#select_relative(+1) : '<Down>'
+" inoremap <expr><Up> pumvisible() ? pum#map#select_relative(-1) : '<Up>'
+" imap <expr><Down> pumvisible() ? pum#map#cancel() : '<Down>'
 
 
 
-inoremap <expr>j ddc#map#pum_visible() ? pum#map#select_relative(-1) : 'j'
-inoremap <expr>k ddc#map#pum_visible() ? pum#map#select_relative(+1) : 'k'
+inoremap <expr><Up> pumvisible() ? ( pum#complete_info().selected >= 0 ? pum#map#select_relative(-1) : pum#map#cancel() ) : '<Up>'
+inoremap <expr><Down> pumvisible() ? ( pum#complete_info().selected >= 0 ? pum#map#select_relative(+1) : pum#map#cancel() ) : '<Down>'
+
+
+
+inoremap <expr>j pumvisible() ? pum#map#select_relative(-1) : 'j'
+inoremap <expr>k pumvisible() ? pum#map#select_relative(+1) : 'k'
 
 " <Esc>: cancels out of completion menu first
 " (not using due to current bug where pum#map#cancel() has a massive delay before executing
-" inoremap <expr><Esc> ddc#map#pum_visible() ? pum#map#cancel() : '<Esc>'
+" inoremap <expr><Esc> pumvisible() ? pum#map#cancel() : '<Esc>'
 
 
-inoremap <expr><PageDown> ddc#map#pum_visible() ? pum#map#select_relative_page(+1) : '<PageDown>'
-inoremap <expr><PageUp> ddc#map#pum_visible() ? pum#map#select_relative_page(-1) : '<PageUp>'
+inoremap <expr><PageDown> pumvisible() ? pum#map#select_relative_page(+1) : '<PageDown>'
+inoremap <expr><PageUp> pumvisible() ? pum#map#select_relative_page(-1) : '<PageUp>'
 
 
 " inoremap <silent><expr><C-space> pum#visible() ? 'aa' : ddc#map#manual_complete(['ale'])
@@ -164,7 +165,6 @@ call ddc#custom#patch_filetype('css','sources',['ale'])
 
 call ddc#custom#patch_filetype('Makefile','sources',['mocword','file'])
 " Use ddc.
-call ddc#enable()
 
 
 
