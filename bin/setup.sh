@@ -3,7 +3,7 @@ declare -i verbosity=0
 declare MODE=""
 declare FORCE=false
 
-while getopts ":h:u:i:v" opt; do
+while getopts ":hiuv" opt; do
 	case $opt in
 	h)
 		echo "Usage: $0"
@@ -13,6 +13,7 @@ while getopts ":h:u:i:v" opt; do
 		MODE="uninstall"
 		;;
 	i)
+		echo "mode: install"
 		MODE="install"
 		;;
 	v)
@@ -113,10 +114,16 @@ function runInstall() {
 	fi
 
 	## nvim
-	if [[ ! -L ~/.config/nvim/init.vim ]]; then
+	if [[ ! -L ~/.config/nvim/init.lua ]]; then
+
+		echo "ensuring ~/.config/nvim/lua/custom exists"
+		mkdir -p ~/.config/nvim/lua/custom
+
 		echo "Symlinking ~/.config/nvim/init.vim"
-		mkdir -p ~/.config/nvim
-		ln -s -f "$DIR/../vimrc" "$HOME/.config/nvim/init.vim"
+		ln -s -f "$DIR/../nvim.lua" "$HOME/.config/nvim/init.lua"
+
+		echo "Symlinking ~/.config/nvim/lua/custom/plugins.lua"
+		ln -s -f "$DIR/../plugins.lua" "$HOME/.config/nvim/lua/custom/plugins.lua"
 	fi
 
 	if [[ ! -L ~/.config/fish/config.fish ]]; then
@@ -141,7 +148,10 @@ case $MODE in
 		installLinuxSpecific
 	fi
 	;;
-"uninstall") ;;
+"uninstall")
+	echo "not implemented yet"
+	exit 1
+	;;
 
 *)
 	echo "neither install nor uninstall specified, exiting with error"

@@ -6,5 +6,5 @@
 
 # dismount all veraCrypt volumes
 if [[ -f /usr/bin/veracrypt ]]; then
-	veracrypt -d
+	sudo veracrypt -d
 fi
