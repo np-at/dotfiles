@@ -100,9 +100,23 @@ fi
 
 # elevate to root if not already
 if [[ $EUID -ne 0 ]]; then
-	exec sudo --preserve-env "$0" "$@"
-	exit $?
+	case $os in
+	darwin)
+		log_verbose "elevating to root"
+		exec sudo --preserve-env "$0" "$@"
+		exit $?
+		;;
+	linux) ;&
+
+	wsl)
+		log_verbose "no need to elevate to root"
+		;;
+	*)
+		log_fatal "unknown os encountered, exiting"
+		;;
+	esac
 fi
+
 declare -r od_key_path="OneDrive/tools/keys"
 if [[ ! -d /tmp/vc ]]; then
 	log_warning "/tmp/vc directory not found, creating now"
