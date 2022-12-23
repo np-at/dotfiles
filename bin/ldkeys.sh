@@ -42,7 +42,6 @@ function get_os {
 	fi
 }
 
-os=$(get_os)
 # check if keep flag is passed, if so then mount keys in read/write mode
 while getopts ":k:d:v" opt; do
 	case $opt in
@@ -70,6 +69,8 @@ while getopts ":k:d:v" opt; do
 	esac
 done
 
+os=$(get_os)
+log_verbose "normalized os is $os"
 # check for valid options
 if $keep && $dismount; then
 	log_fatal "cannot use both -k and -d flags"
@@ -101,15 +102,15 @@ fi
 # elevate to root if not already
 if [[ $EUID -ne 0 ]]; then
 	case $os in
-	darwin)
-		log_verbose "elevating to root"
-		exec sudo --preserve-env "$0" "$@"
-		exit $?
-		;;
+	darwin) ;&
+
 	linux) ;&
 
 	wsl)
-		log_verbose "no need to elevate to root"
+		# log_verbose "no need to elevate to root"
+		log_verbose "elevating to root"
+		exec sudo --preserve-env "$0" "$@"
+		exit $?
 		;;
 	*)
 		log_fatal "unknown os encountered, exiting"
@@ -153,78 +154,105 @@ fi
 
 ## STEP 2 Mount local_keys volume
 log_verbose "mounting local_keys volume"
-case $os in
-darwin)
-	veracrypt -t -k "" -m=ts --protect-hidden=no --pim=0 "$HOME/local_keys" ~/.ssh
-	if $keep; then
-		veracrypt -t -k "" -m=ts --filesystem=none --protect-hidden=no --pim=0 "$HOME/$od_key_path"
-		KeysVol=$(VeraCrypt -t -l | grep -e "$od_key_path" | sed 's/ /\n/g' | grep "/dev/")
-	else
-		veracrypt -t -k "" -m=ts,ro --filesystem=none --protect-hidden=no --pim=0 "$HOME/$od_key_path" /tmp/vc
-		KeysVol=$(VeraCrypt -t -l | grep -e "$od_key_path" | sed 's/ /\n/g' | grep "/dev/")
-		sudo ntfs-3g "$KeysVol" /tmp/vc -o local,ro
-	fi
-	;;
-linux)
-	veracrypt -t -k "" -m=ts --protect-hidden=no --pim=0 "$HOME/local_keys" "$HOME/.ssh"
-	if [[ ! -d /tmp/vc ]]; then
-		mkdir /tmp/vc
-	fi
-	if $keep; then
-		veracrypt -t -k "" -m=ts --protect-hidden=no --pim=0 "$HOME/$od_key_path" /tmp/vc
-	else
-		veracrypt -t -k "" -m=ts,ro --protect-hidden=no --pim=0 "$HOME/$od_key_path" /tmp/vc
-	fi
-
-	veracrypt -t -k "" -m=ts --protect-hidden=no --pim=0 "$HOME/local_keys" "$HOME/.ssh"
-	if [[ ! -d /tmp/vc ]]; then
-		mkdir /tmp/vc
-	fi
-	if $keep; then
-		veracrypt -t -k "" -m=ts --protect-hidden=no --pim=0 "$HOME/$od_key_path" /tmp/vc
-	else
-		veracrypt -t -k "" -m=ts,ro --protect-hidden=no --pim=0 "$HOME/$od_key_path" /tmp/vc
-	fi
-	;;
-wsl)
-	if [[ ! -d "$HOME/.ssh" ]]; then
-		echo "$HOME/.ssh not found, creating now"
-		mkdir -p ~/.ssh
-	fi
-	veracrypt -t -k "" -m=nokernelcrypto,ts --protect-hidden=no --pim=0 "$HOME/local_keys" "$HOME/.ssh"
-	log_info "mounted local keys"
-
-	un=('curio' 'np')
-	un_len="${#un[@]}"
-
-	declare user_dir_path
-	for ((i = 0; i <= un_len; i++)); do
-		log_debug "testing ${un[$i]}"
-		test_path="/mnt/c/Users/${un[$i]}"
-		if [[ -e $test_path ]]; then
-			log_verbose "user dir path is $test_path"
-			user_dir_path="$test_path"
-			break
+if veracrypt -t -l | grep --quiet "$HOME/local_keys"; then
+	log_warning "local_keys volume already mounted"
+else
+	case $os in
+	darwin)
+		if ! veracrypt -t -k "" -m=ts --protect-hidden=no --pim=0 "$HOME/local_keys" ~/.ssh; then
+			log_fatal "failed to mount local_keys volume, exiting"
 		fi
-	done
 
-	log_verbose "pathcheck is $user_dir_path/$od_key_path"
-	if [[ -e "$user_dir_path/$od_key_path" ]]; then
 		if $keep; then
-			log_verbose "keep flag passed, mounting $user_dir_path/$od_key_path on /tmp/vc as read/write"
-			veracrypt -t -k "" -m=nokernelcrypto,ts --protect-hidden=no --pim=0 "$user_dir_path/$od_key_path" /tmp/vc
+			if ! veracrypt -t -k "" -m=ts --filesystem=none --protect-hidden=no --pim=0 "$HOME/$od_key_path"; then
+				log_fatal "failed to mount OneDrive keys volume, exiting"
+			fi
+			KeysVol=$(VeraCrypt -t -l | grep -e "$od_key_path" | sed 's/ /\n/g' | grep "/dev/")
 		else
-			log_verbose "keep flag not passed, mounting $user_dir_path/$od_key_path on /tmp/vc as read only"
-			veracrypt -t -k "" -m=ts,nokernelcrypto,ro --protect-hidden=no --pim=0 "$user_dir_path/$od_key_path" /tmp/vc
+			if ! veracrypt -t -k "" -m=ts,ro --filesystem=none --protect-hidden=no --pim=0 "$HOME/$od_key_path" /tmp/vc; then
+				log_fatal "failed to open OneDrive keys volume, exiting"
+			fi
+			KeysVol=$(VeraCrypt -t -l | grep -e "$od_key_path" | sed 's/ /\n/g' | grep "/dev/")
+			if ! ntfs-3g "$KeysVol" /tmp/vc -o local,ro; then
+				veracrypt -t -d "$HOME/$od_key_path"
+				log_fatal "failed to mount Onedrive keys volume, exiting"
+			fi
 		fi
-	else
-		log_warning "unknown Environment, dismounting all and exiting now"
-		veracrypt -t -d
-		exit 1
-	fi
-	;;
-esac
+		;;
+	linux)
+		if ! veracrypt -t -k "" -m=ts --protect-hidden=no --pim=0 "$HOME/local_keys" "$HOME/.ssh"; then
+			log_fatal "failed to mount local_keys volume, exiting"
+		fi
+		if [[ ! -d /tmp/vc ]]; then
+			mkdir /tmp/vc
+		fi
+		if $keep; then
+			if ! veracrypt -t -k "" -m=ts --protect-hidden=no --pim=0 "$HOME/$od_key_path" /tmp/vc; then
+				log_fatal "failed to mount OneDrive keys volume, exiting"
+			fi
+		else
+			if ! veracrypt -t -k "" -m=ts,ro --protect-hidden=no --pim=0 "$HOME/$od_key_path" /tmp/vc; then
+				log_fatal "failed to open OneDrive keys volume, exiting"
+			fi
+		fi
 
+		veracrypt -t -k "" -m=ts --protect-hidden=no --pim=0 "$HOME/local_keys" "$HOME/.ssh"
+		if [[ ! -d /tmp/vc ]]; then
+			mkdir /tmp/vc
+		fi
+		if $keep; then
+			veracrypt -t -k "" -m=ts --protect-hidden=no --pim=0 "$HOME/$od_key_path" /tmp/vc
+		else
+			veracrypt -t -k "" -m=ts,ro --protect-hidden=no --pim=0 "$HOME/$od_key_path" /tmp/vc
+		fi
+		;;
+	wsl)
+		if [[ ! -d "$HOME/.ssh" ]]; then
+			echo "$HOME/.ssh not found, creating now"
+			mkdir -p ~/.ssh
+			chmod 700 ~/.ssh
+			chown -R "$USER":"$USER" ~/.ssh
+		fi
+		if ! veracrypt -t -k "" -m=nokernelcrypto,ts --protect-hidden=no --pim=0 "$HOME/local_keys" "$HOME/.ssh"; then
+			log_fatal "failed to mount local_keys volume, exiting"
+		fi
+		log_info "mounted local keys"
+
+		un=('curio' 'np')
+		un_len="${#un[@]}"
+
+		declare user_dir_path
+		for ((i = 0; i <= un_len; i++)); do
+			log_debug "testing ${un[$i]}"
+			test_path="/mnt/c/Users/${un[$i]}"
+			if [[ -e $test_path ]]; then
+				log_verbose "user dir path is $test_path"
+				user_dir_path="$test_path"
+				break
+			fi
+		done
+
+		log_verbose "pathcheck is $user_dir_path/$od_key_path"
+		if [[ -e "$user_dir_path/$od_key_path" ]]; then
+			if $keep; then
+				log_verbose "keep flag passed, mounting $user_dir_path/$od_key_path on /tmp/vc as read/write"
+				if ! veracrypt -t -k "" -m=nokernelcrypto,ts --protect-hidden=no --pim=0 "$user_dir_path/$od_key_path" /tmp/vc; then
+					log_fatal "failed to mount OneDrive keys volume, exiting"
+				fi
+			else
+				log_verbose "keep flag not passed, mounting $user_dir_path/$od_key_path on /tmp/vc as read only"
+				if ! veracrypt -t -k "" -m=ts,nokernelcrypto,ro --protect-hidden=no --pim=0 "$user_dir_path/$od_key_path" /tmp/vc; then # --filesystem=none
+					log_fatal "failed to mount OneDrive keys volume, exiting"
+				fi
+			fi
+		else
+			log_warning "unknown Environment, dismounting all and exiting now"
+			veracrypt -t -d
+			exit 1
+		fi
+		;;
+	esac
+fi
 ### STEP 3: copy ssh keys #######################################################
 
 log_info "copying ssh keys"
@@ -260,7 +288,7 @@ Host * \
 
 	chmod 0600 "$HOME"/.ssh/*
 else
-	log_warning "config file was not found"
+	log_fatal "config file was not found"
 fi
 
 if $keep; then
