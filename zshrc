@@ -50,7 +50,7 @@ if type brew &>/dev/null; then
   compinit
 fi
 # Path to your oh-my-zsh installation.
-alias vs="$HOME/.dotfiles/bin/ldkeys.sh -l"
+alias vs="$HOME/.dotfiles/bin/ldkeys.sh"
 
 export ZSH="$HOME/.oh-my-zsh"
 
