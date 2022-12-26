@@ -50,7 +50,7 @@ if type brew &>/dev/null; then
   compinit
 fi
 # Path to your oh-my-zsh installation.
-alias vs="$HOME/.dotfiles/bin/ldkeys.sh -l"
+alias vs="$HOME/.dotfiles/bin/ldkeys.sh"
 
 export ZSH="$HOME/.oh-my-zsh"
 
@@ -206,6 +206,6 @@ alias la='exa -a --color=always --group-directories-first --icons'  # all files 
 alias ll='exa -l --color=always --group-directories-first --icons'  # long format
 alias lt='exa -aT --color=always --group-directories-first --icons' # tree listing
 alias l.="exa -a | egrep '^\.'"                                     # show only dotfiles
-
+alias cat="batcat"
 test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
 
