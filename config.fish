@@ -270,6 +270,7 @@ if test -d ~/esp/xtensa-esp32-elf/bin
   end
 end
 
+fish_add_path /usr/local/sbin
 
 function urlencode
   set str (string join ' ' $argv)
@@ -288,3 +289,9 @@ function urldecode
     printf '%b' (string replace -a '%' '\\x' $url_encoded)
 end
 nvm use --silent
+
+# pnpm
+set -gx PNPM_HOME "/Users/np/Library/pnpm"
+set -gx PATH "$PNPM_HOME" $PATH
+# pnpm endop completion fish | source
+op completion fish | source
