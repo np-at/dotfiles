@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 declare keep=false
 declare local_keys_path="$HOME/local_keys"
 declare -i verbose=0
