@@ -21,4 +21,7 @@ return function(use)
 			require("copilot_cmp").setup()
 		end
 	})
+
+	-- Fish syntax support
+	use("khaveesh/vim-fish-syntax")
 end
