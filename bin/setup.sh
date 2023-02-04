@@ -91,6 +91,7 @@ function installLinuxSpecific() {
 
 	if [ $FORCE ] || [[ ! -L ~/.config/onedrive/config ]]; then
 		# link onedrive for linux client config
+		mkdir -p ~/.config/onedrive
 		ln -s -f "$DIR/../Linux_Onedrive_Config" ~/.config/onedrive/config
 	fi
 
