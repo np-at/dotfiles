@@ -73,7 +73,7 @@ done
 os=$(get_os)
 log_verbose "normalized os is $os"
 # check for valid options
-if $keep && $dismount; then
+if ${keep} && ${dismount}; then
 	log_fatal "cannot use both -k and -d flags"
 fi
 
@@ -101,7 +101,7 @@ if $missing_prereqs; then
 fi
 
 # elevate to root if not already
-if [[ $EUID -ne 0 ]]; then
+if [[ ${EUID} -ne 0 ]]; then
 	case $os in
 	darwin) ;&
 
@@ -134,15 +134,15 @@ fi
 ## STEP 1 Check if local_keys volume exists, if not create it
 if [[ ! -e $local_keys_path ]]; then
 	echo "local keys not found, creating now"
-	case $os in
+	case ${os} in
 	darwin)
-		veracrypt -t -c "$HOME/local_keys"
+		veracrypt -t -c "${HOME}/local_keys"
 		;;
 	linux)
-		veracrypt -t -k "" -c "$HOME/local_keys"
+		veracrypt -t -k "" -c "${HOME}/local_keys"
 		;;
 	wsl)
-		veracrypt -t -k "" -m=nokernelcrypto -c "$HOME/local_keys"
+		veracrypt -t -k "" -m=nokernelcrypto -c "${HOME}/local_keys"
 		;;
 	test)
 		log_fatal "test, not implementated"
@@ -156,28 +156,33 @@ fi
 ## STEP 2 Mount local_keys and one drive keys volumes
 log_verbose "mounting local_keys volume"
 declare local_keys_mounted=false
-if veracrypt -t -l | grep --quiet "$HOME/local_keys"; then
+if veracrypt -t -l | grep --quiet "${HOME}/local_keys"; then
 	log_warning "local_keys volume already mounted"
 	local_keys_mounted=true
 fi
 case $os in
 darwin)
 	if ! $local_keys_mounted; then
-		if ! veracrypt -t -k "" -m=ts --protect-hidden=no --pim=0 "$HOME/local_keys" ~/.ssh; then
+		if ! veracrypt -t -k "" -m=ts --protect-hidden=no --pim=0 "${HOME}/local_keys" ~/.ssh; then
 			log_fatal "failed to mount local_keys volume, exiting"
 		fi
 	fi
+	odk="${HOME}/${od_key_path}"	
 
-	if $keep; then
-		if ! veracrypt -t -k "" -m=ts --filesystem=none --protect-hidden=no --pim=0 "$HOME/$od_key_path"; then
+	if ${keep}; then
+		if ! veracrypt -t -k "" -m=ts --filesystem=none --protect-hidden=no --pim=0 "${odk}"; then
 			log_fatal "failed to mount OneDrive keys volume, exiting"
 		fi
-		KeysVol=$(VeraCrypt -t -l | grep -e "$od_key_path" | sed 's/ /\n/g' | grep "/dev/")
+		KeysVol=$(VeraCrypt -t -l | grep -e "${od_key_path}" | sed 's/ /\n/g' | grep "/dev/")
+		if ! ntfs-3g "${KeysVol}" /tmp/vc -o local; then
+			veracrypt -t -d "${odk}"
+			log_fatal "failed to mount Onedrive keys volume, exiting"
+		fi
 	else
-		if ! veracrypt -t -k "" -m=ts,ro --filesystem=none --protect-hidden=no --pim=0 "$HOME/$od_key_path" /tmp/vc; then
+		if ! veracrypt -t -k "" -m=ts,ro --filesystem=none --protect-hidden=no --pim=0 "${odk}" /tmp/vc; then
 			log_fatal "failed to open OneDrive keys volume, exiting"
 		fi
-		KeysVol=$(VeraCrypt -t -l | grep -e "$od_key_path" | sed 's/ /\n/g' | grep "/dev/")
+		KeysVol=$(VeraCrypt -t -l | grep -e "${od_key_path}" | sed 's/ /\n/g' | grep "/dev/")
 		if ! ntfs-3g "$KeysVol" /tmp/vc -o local,ro; then
 			veracrypt -t -d "$HOME/$od_key_path"
 			log_fatal "failed to mount Onedrive keys volume, exiting"
@@ -259,6 +264,9 @@ wsl)
 		veracrypt -t -d
 		exit 1
 	fi
+	;;
+	*)
+	log_fatal "Unkown OS"
 	;;
 esac
 
