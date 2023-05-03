@@ -8,7 +8,7 @@ switch (uname)
     case Linux
             echo Hi Tux!
     case Darwin
-            echo Hi Hexley!
+            # echo Hi Hexley!
     case FreeBSD NetBSD DragonFly
             echo Hi Beastie!
     case '*'
@@ -31,7 +31,7 @@ if test -f "$HOME/.fish_profile"
 end
 
 # Add ~/.local/bin to PATH
-if test -d ~/.local/bin
+if test -d "$HOME/.local/bin"
     if not contains -- "$HOME/.local/bin" $PATH
         set -p PATH "$HOME/.local/bin"
     end
@@ -46,7 +46,8 @@ end
 
 
 ## Starship prompt
-if status --is-interactive
+## if non interactive or not running in ITERM2, don't bother initiliazing
+if status --is-interactive && test -n "$ITERM_PROFILE"
    if test -f /usr/bin/starship
     source ("/usr/bin/starship" init fish --print-full-init | psub)
    else if test -f /usr/local/bin/starship
@@ -173,13 +174,15 @@ alias rip="expac --timefmt='%Y-%m-%d %T' '%l\t%n %v' | sort | tail -200 | nl"
 
 ## Run paleofetch if session is interactive
 if status --is-interactive
-   neofetch
+  if test -n "$ITERM_PROFILE"
+     neofetch
+  end
 end
 
 set -p EDITOR vim
 
 
-alias lynx="lynx -cfg=~/.config/lynx.cfg"
+alias lynx="lynx -cfg=$HOME/.config/lynx.cfg"
 
 
 # if test -d ~/.platformio/penv/bin
@@ -271,6 +274,17 @@ if test -d ~/esp/xtensa-esp32-elf/bin
 end
 
 fish_add_path /usr/local/sbin
+
+
+
+if test -d "$HOME/.wdm/drivers/chromedriver"
+  if not contains -- "$HOME/.wdm/drivers/chromedriver"
+    set -p PATH "$HOME/.wdm/drivers/chromedriver"
+  end
+end
+
+
+
 
 function urlencode
   set str (string join ' ' $argv)
