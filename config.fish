@@ -52,6 +52,8 @@ if status --is-interactive && test -n "$ITERM_PROFILE"
     source ("/usr/bin/starship" init fish --print-full-init | psub)
    else if test -f /usr/local/bin/starship
      source ("/usr/local/bin/starship" init fish --print-full-init | psub)
+   else if test -f /opt/homebrew/bin/starship		
+     source ("/opt/homebrew/bin/starship" init fish --print-full-init | psub)
    else
        echo "fail!"
        exit 1
@@ -115,12 +117,12 @@ function copy
 end
 
 ## Useful aliases
-# Replace ls with exa
-alias ls='exa -al --color=always --group-directories-first --icons' # preferred listing
-alias la='exa -a --color=always --group-directories-first --icons'  # all files and dirs
-alias ll='exa -l --color=always --group-directories-first --icons'  # long format
-alias lt='exa -aT --color=always --group-directories-first --icons' # tree listing
-alias l.="exa -a | egrep '^\.'"                                     # show only dotfiles
+# Replace ls with eza
+alias ls='eza -al --color=always --group-directories-first --icons' # preferred listing
+alias la='eza -a --color=always --group-directories-first --icons'  # all files and dirs
+alias ll='eza -l --color=always --group-directories-first --icons'  # long format
+alias lt='eza -aT --color=always --group-directories-first --icons' # tree listing
+alias l.="eza -a | egrep '^\.'"                                     # show only dotfiles
 
 # Replace some more things with better alternatives
 alias cat='bat --style header --style rule --style snip --style changes --style header'
@@ -239,6 +241,50 @@ switch (uname)
             if test -e /Users/np/.iterm2_shell_integration.fish
               source /Users/np/.iterm2_shell_integration.fish;
             end
+            
+            fish_add_path /opt/homebrew/bin            
+            fish_add_path /opt/homebrew/sbin
+            fish_add_path "$HOME/Library/Python/3.11/bin"
+            alias safari="open -a safari"
+            alias firefox="open -a firefox"
+            alias opera="open -a opera"
+            alias chrome="open -a google\ chrome"
+            alias canary="open -a google\ chrome\ canary"
+            # mactex path_helper
+            # set PATH "$(/usr/libexec/path_helper)"
+  ## BROWSER STUFF 
+            # Launch installed browsers for a specific URL
+            # Usage: browsers "http://www.google.com"
+            function browsers
+            	chrome $1
+            	# opera $1
+            	firefox $1
+            	safari $1
+            end
+
+            # Start an HTTP server from a directory, optionally specifying the port
+            function server
+                set -q argv[1]; or set argv[1] 8000
+              
+            	set --local port "$argv[1]"
+            	open "http://localhost:$port/"
+            	# Set the default Content-Type to `text/plain` instead of `application/octet-stream`
+            	# And serve everything as UTF-8 (although not technically correct, this doesn’t break anything for binary files)
+
+            	python3 -c 'import http.server,sys
+ext_map = http.server.SimpleHTTPRequestHandler.extensions_map
+ext_map[""] = "text/plain"
+for key, value in ext_map.items():
+    ext_map[key] = value + ";charset=UTF-8"
+s = http.server.HTTPServer(server_address=("", int(sys.argv[1])), RequestHandlerClass=http.server.SimpleHTTPRequestHandler)
+try:
+    s.serve_forever()
+except KeyboardInterrupt:
+    pass
+
+' "$port"
+            end
+            
 
 
     case FreeBSD NetBSD DragonFly
@@ -307,5 +353,17 @@ nvm use --silent
 # pnpm
 set -gx PNPM_HOME "/Users/np/Library/pnpm"
 set -gx PATH "$PNPM_HOME" $PATH
+
+
 # pnpm endop completion fish | source
 op completion fish | source
+
+
+
+# Copy w/ progress
+function cp_p 
+  rsync -WavP --human-readable --progress argv[1] argv[2]
+end
+
+set -g RUSTC_WRAPPER "cargo install {package}"
+

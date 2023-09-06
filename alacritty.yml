@@ -406,7 +406,7 @@ bell:
 
 # Key bindings
 #
-# Key bindings are specified as a list of objects. For example, this is the
+# Key bindings are specified as a list of objects. For ezample, this is the
 # default paste binding:
 #
 # `- { key: V, mods: Control|Shift, action: Paste }`
@@ -429,7 +429,7 @@ bell:
 #
 #       `showkey --scancodes`.
 #
-# Then exactly one of:
+# Then ezactly one of:
 #
 # - `chars`: Send a byte sequence to the running application
 #
@@ -470,7 +470,7 @@ bell:
 # - `command`: Fork and execute a specified command plus arguments
 #
 #    The `command` field must be a map containing a `program` string and an
-#    `args` array of command line parameter strings. For example:
+#    `args` array of command line parameter strings. For ezample:
 #       `{ program: "alacritty", args: ["-e", "vttest"] }`
 #
 # And optionally:
@@ -486,7 +486,7 @@ bell:
 #
 #    Multiple `mods` can be combined using `|` like this:
 #       `mods: Control|Shift`.
-#    Whitespace and capitalization are relevant and must match the example.
+#    Whitespace and capitalization are relevant and must match the ezample.
 #
 # - `mode`: Indicate a binding for only specific terminal reported modes
 #

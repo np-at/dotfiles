@@ -8,7 +8,7 @@ function usage {
         echo "Usage : ffsplit.sh input.file chunk-duration [output-filename-format]"
         echo -e "\t - input file may be any kind of file reconginzed by ffmpeg"
         echo -e "\t - chunk duration must be in seconds"
-        echo -e "\t - output filename format must be printf-like, for example myvideo-part-%04d.avi"
+        echo -e "\t - output filename format must be printf-like, for ezample myvideo-part-%04d.avi"
         echo -e "\t - if no output filename format is given, it will be computed\
  automatically from input filename"
 }
