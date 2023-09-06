@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 declare keep=false
-declare local_keys_path="$HOME/local_keys"
+declare local_keys_path="${HOME}/local_keys"
 declare -i verbose=0
 declare dismount=false
 declare os
@@ -13,17 +13,17 @@ function log_warning {
 	echo "[WARNING] $1"
 }
 function log_info {
-	if [[ $verbose -ge 0 ]]; then
+	if [[ ${verbose} -ge 0 ]]; then
 		echo "[INFO] $1"
 	fi
 }
 function log_verbose {
-	if [[ $verbose -ge 1 ]]; then
+	if [[ ${verbose} -ge 1 ]]; then
 		echo "[VRB] $1"
 	fi
 }
 function log_debug {
-	if [[ $verbose -ge 2 ]]; then
+	if [[ ${verbose} -ge 2 ]]; then
 		echo "[DBG] $1"
 	fi
 }
@@ -45,7 +45,7 @@ function get_os {
 
 # check if keep flag is passed, if so then mount keys in read/write mode
 while getopts ":kdv" opt; do
-	case $opt in
+	case ${opt} in
 	d)
 		echo "dismount flag passed, will dismount all volumes after copy"
 		dismount=true
@@ -56,13 +56,13 @@ while getopts ":kdv" opt; do
 		;;
 	v)
 		verbose=$((verbose + 1))
-		log_debug "verbose flag passed, setting verbose to $verbose"
+		log_debug "verbose flag passed, setting verbose to ${verbose}"
 		;;
 	\?)
-		log_fatal "Invalid option: -$OPTARG"
+		log_fatal "Invalid option: -${OPTARG}"
 		;;
 	:)
-		log_fatal "Option -$OPTARG requires an argument."
+		log_fatal "Option -${OPTARG} requires an argument."
 		;;
 	*)
 		log_fatal "unknown option encountered, exiting"
@@ -71,7 +71,7 @@ while getopts ":kdv" opt; do
 done
 
 os=$(get_os)
-log_verbose "normalized os is $os"
+log_verbose "normalized os is ${os}"
 # check for valid options
 if ${keep} && ${dismount}; then
 	log_fatal "cannot use both -k and -d flags"
@@ -89,20 +89,20 @@ elif ! command -v ssh-keygen &>/dev/null; then
 	log_warning "ssh-keygen not found, please install it"
 	missing_prereqs=true
 elif ! command -v ntfs-3g &>/dev/null; then
-	if [[ $os == "darwin" ]]; then
+	if [[ ${os} == "darwin" ]]; then
 		log_warning "ntfs-3g not found, please install it with brew install ntfs-3g"
 	else
 		log_warning "ntfs-3g not found, please install it"
 	fi
 	missing_prereqs=true
 fi
-if $missing_prereqs; then
+if ${missing_prereqs}; then
 	log_fatal "missing prereqs, exiting"
 fi
 
 # elevate to root if not already
 if [[ ${EUID} -ne 0 ]]; then
-	case $os in
+	case ${os} in
 	darwin) ;&
 
 	linux) ;&
@@ -125,14 +125,14 @@ if [[ ! -d /tmp/vc ]]; then
 	mkdir -p /tmp/vc
 fi
 
-if [[ ! -d "$HOME/.ssh" ]]; then
-	log_warning "$HOME/.ssh directory not found, creating now"
-	mkdir -p "$HOME/.ssh"
-	chmod 700 "$HOME/.ssh"
+if [[ ! -d "${HOME}/.ssh" ]]; then
+	log_warning "${HOME}/.ssh directory not found, creating now"
+	mkdir -p "${HOME}/.ssh"
+	chmod 700 "${HOME}/.ssh"
 fi
 
 ## STEP 1 Check if local_keys volume exists, if not create it
-if [[ ! -e $local_keys_path ]]; then
+if [[ ! -e ${local_keys_path} ]]; then
 	echo "local keys not found, creating now"
 	case ${os} in
 	darwin)
@@ -160,14 +160,14 @@ if veracrypt -t -l | grep --quiet "${HOME}/local_keys"; then
 	log_warning "local_keys volume already mounted"
 	local_keys_mounted=true
 fi
-case $os in
+case ${os} in
 darwin)
-	if ! $local_keys_mounted; then
+	if ! ${local_keys_mounted}; then
 		if ! veracrypt -t -k "" -m=ts --protect-hidden=no --pim=0 "${HOME}/local_keys" ~/.ssh; then
 			log_fatal "failed to mount local_keys volume, exiting"
 		fi
 	fi
-	odk="${HOME}/${od_key_path}"	
+	odk="${HOME}/${od_key_path}"
 
 	if ${keep}; then
 		if ! veracrypt -t -k "" -m=ts --filesystem=none --protect-hidden=no --pim=0 "${odk}"; then
@@ -183,50 +183,50 @@ darwin)
 			log_fatal "failed to open OneDrive keys volume, exiting"
 		fi
 		KeysVol=$(VeraCrypt -t -l | grep -e "${od_key_path}" | sed 's/ /\n/g' | grep "/dev/")
-		if ! ntfs-3g "$KeysVol" /tmp/vc -o local,ro; then
-			veracrypt -t -d "$HOME/$od_key_path"
+		if ! ntfs-3g "${KeysVol}" /tmp/vc -o local,ro; then
+			veracrypt -t -d "${HOME}/${od_key_path}"
 			log_fatal "failed to mount Onedrive keys volume, exiting"
 		fi
 	fi
 	;;
 linux)
-	if ! $local_keys_mounted; then
-		if ! veracrypt -t -k "" -m=ts --protect-hidden=no --pim=0 "$HOME/local_keys" "$HOME/.ssh"; then
+	if ! ${local_keys_mounted}; then
+		if ! veracrypt -t -k "" -m=ts --protect-hidden=no --pim=0 "${HOME}/local_keys" "${HOME}/.ssh"; then
 			log_fatal "failed to mount local_keys volume, exiting"
 		fi
 	fi
 	if [[ ! -d /tmp/vc ]]; then
 		mkdir /tmp/vc
 	fi
-	if $keep; then
-		if ! veracrypt -t -k "" -m=ts --protect-hidden=no --pim=0 "$HOME/$od_key_path" /tmp/vc; then
+	if ${keep}; then
+		if ! veracrypt -t -k "" -m=ts --protect-hidden=no --pim=0 "${HOME}/${od_key_path}" /tmp/vc; then
 			log_fatal "failed to mount OneDrive keys volume, exiting"
 		fi
 	else
-		if ! veracrypt -t -k "" -m=ts,ro --protect-hidden=no --pim=0 "$HOME/$od_key_path" /tmp/vc; then
+		if ! veracrypt -t -k "" -m=ts,ro --protect-hidden=no --pim=0 "${HOME}/${od_key_path}" /tmp/vc; then
 			log_fatal "failed to open OneDrive keys volume, exiting"
 		fi
 	fi
 
-	veracrypt -t -k "" -m=ts --protect-hidden=no --pim=0 "$HOME/local_keys" "$HOME/.ssh"
+	veracrypt -t -k "" -m=ts --protect-hidden=no --pim=0 "${HOME}/local_keys" "${HOME}/.ssh"
 	if [[ ! -d /tmp/vc ]]; then
 		mkdir /tmp/vc
 	fi
-	if $keep; then
-		veracrypt -t -k "" -m=ts --protect-hidden=no --pim=0 "$HOME/$od_key_path" /tmp/vc
+	if ${keep}; then
+		veracrypt -t -k "" -m=ts --protect-hidden=no --pim=0 "${HOME}/${od_key_path}" /tmp/vc
 	else
-		veracrypt -t -k "" -m=ts,ro --protect-hidden=no --pim=0 "$HOME/$od_key_path" /tmp/vc
+		veracrypt -t -k "" -m=ts,ro --protect-hidden=no --pim=0 "${HOME}/${od_key_path}" /tmp/vc
 	fi
 	;;
 wsl)
-	if [[ ! -d "$HOME/.ssh" ]]; then
-		echo "$HOME/.ssh not found, creating now"
+	if [[ ! -d "${HOME}/.ssh" ]]; then
+		echo "${HOME}/.ssh not found, creating now"
 		mkdir -p ~/.ssh
 		chmod 700 ~/.ssh
-		chown -R "$USER":"$USER" ~/.ssh
+		chown -R "${USER}":"${USER}" ~/.ssh
 	fi
-	if ! $local_keys_mounted; then
-		if ! veracrypt -t -k "" -m=nokernelcrypto,ts --protect-hidden=no --pim=0 "$HOME/local_keys" "$HOME/.ssh"; then
+	if ! ${local_keys_mounted}; then
+		if ! veracrypt -t -k "" -m=nokernelcrypto,ts --protect-hidden=no --pim=0 "${HOME}/local_keys" "${HOME}/.ssh"; then
 			log_fatal "failed to mount local_keys volume, exiting"
 		fi
 	fi
@@ -237,25 +237,25 @@ wsl)
 
 	declare user_dir_path
 	for ((i = 0; i <= un_len; i++)); do
-		log_debug "testing ${un[$i]}"
-		test_path="/mnt/c/Users/${un[$i]}"
-		if [[ -e $test_path ]]; then
-			log_verbose "user dir path is $test_path"
-			user_dir_path="$test_path"
+		log_debug "testing ${un[${i}]}"
+		test_path="/mnt/c/Users/${un[${i}]}"
+		if [[ -e ${test_path} ]]; then
+			log_verbose "user dir path is ${test_path}"
+			user_dir_path="${test_path}"
 			break
 		fi
 	done
 
-	log_verbose "pathcheck is $user_dir_path/$od_key_path"
-	if [[ -e "$user_dir_path/$od_key_path" ]]; then
-		if $keep; then
-			log_verbose "keep flag passed, mounting $user_dir_path/$od_key_path on /tmp/vc as read/write"
-			if ! veracrypt -t -k "" -m=nokernelcrypto,ts --protect-hidden=no --pim=0 "$user_dir_path/$od_key_path" /tmp/vc; then
+	log_verbose "pathcheck is ${user_dir_path}/${od_key_path}"
+	if [[ -e "${user_dir_path}/${od_key_path}" ]]; then
+		if ${keep}; then
+			log_verbose "keep flag passed, mounting ${user_dir_path}/${od_key_path} on /tmp/vc as read/write"
+			if ! veracrypt -t -k "" -m=nokernelcrypto,ts --protect-hidden=no --pim=0 "${user_dir_path}/${od_key_path}" /tmp/vc; then
 				log_fatal "failed to mount OneDrive keys volume, exiting"
 			fi
 		else
-			log_verbose "keep flag not passed, mounting $user_dir_path/$od_key_path on /tmp/vc as read only"
-			if ! veracrypt -t -k "" -m=ts,nokernelcrypto,ro --protect-hidden=no --pim=0 "$user_dir_path/$od_key_path" /tmp/vc; then # --filesystem=none
+			log_verbose "keep flag not passed, mounting ${user_dir_path}/${od_key_path} on /tmp/vc as read only"
+			if ! veracrypt -t -k "" -m=ts,nokernelcrypto,ro --protect-hidden=no --pim=0 "${user_dir_path}/${od_key_path}" /tmp/vc; then # --filesystem=none
 				log_fatal "failed to mount OneDrive keys volume, exiting"
 			fi
 		fi
@@ -265,7 +265,7 @@ wsl)
 		exit 1
 	fi
 	;;
-	*)
+*)
 	log_fatal "Unkown OS"
 	;;
 esac
@@ -276,42 +276,42 @@ log_info "copying ssh keys"
 if [[ -e /tmp/vc/config ]]; then
 	sed 's/M\:\/ssh_keys\//~\/\.ssh\//g' /tmp/vc/config |
 		sed 's/C\:\\Windows\\System32\\OpenSSH\\ssh\.exe/ssh/g' |
-		sed 's/\r$//' >"$HOME/.ssh/config"
-	if [[ $os == 'darwin' ]]; then
-		MAC_1P="$(find "$HOME"/Library/Group\ Containers -type d -name "*1password" 2>/dev/null)"
-		echo "mac_1p is $MAC_1P"
+		sed 's/\r$//' >"${HOME}/.ssh/config"
+	if [[ ${os} == 'darwin' ]]; then
+		MAC_1P="$(find "${HOME}"/Library/Group\ Containers -type d -name "*1password" 2>/dev/null)"
+		echo "mac_1p is ${MAC_1P}"
 
 		sed -i -E "1i\\
 Host * \\
-    IdentityAgent \"$MAC_1P/t/agent.sock\"
-                  " "$HOME/.ssh/config"
+    IdentityAgent \"${MAC_1P}/t/agent.sock\"
+                  " "${HOME}/.ssh/config"
 		sed -i -E "1i\\
 Host github.com\\
     hostname github.com\\
     user git\\
-    Identityfile $HOME/.ssh/np_at_gh2\\
+    Identityfile ${HOME}/.ssh/np_at_gh2\\
     IdentityAgent none\\
-" "$HOME/.ssh/config"
+" "${HOME}/.ssh/config"
 	fi
 	# set 1Password to handle ssh identities if no-buntu
-	if [[ $os == 'linux' ]]; then
+	if [[ ${os} == 'linux' ]]; then
 		sed --in-place -e '1i\
 Host * \
     IdentityAgent ~/.1password/agent.sock
-                  ' "$HOME/.ssh/config"
+                  ' "${HOME}/.ssh/config"
 	fi
-	cp -r /tmp/vc/ssh_keys/* "$HOME/.ssh"
+	cp -r /tmp/vc/ssh_keys/* "${HOME}/.ssh"
 	# fix permissions
 
-	chmod 0600 "$HOME"/.ssh/*
+	chmod 0600 "${HOME}"/.ssh/*
 else
 	log_fatal "config file was not found"
 fi
 
-if $keep; then
+if ${keep}; then
 	log_info "keep flag passed, keeping veracrypt volume mounted"
 	echo "$1"
-elif $dismount; then
+elif ${dismount}; then
 	log_info "mounted vol and copied keys.  dismounting all volumes now (-d flag passed)"
 	veracrypt -t -d
 else
