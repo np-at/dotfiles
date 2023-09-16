@@ -367,3 +367,7 @@ end
 
 set -g RUSTC_WRAPPER "cargo install {package}"
 
+# opt out of .NET Core telemetry
+set -g DOTNET_CLI_TELEMETRY_OPTOUT "true"
+
+
