@@ -203,6 +203,11 @@ if test -d "$HOME/go/bin"
  end
 end
 
+if test -d "$HOME/.opam/default/bin"
+ if not contains -- "$HOME/.opam/default/bin" $PATH
+   set -p PATH "$HOME/.opam/default/bin"
+ end
+end
 
 # # using cntl+delete will delete whole word
 function fish_user_key_bindings
