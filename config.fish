@@ -22,7 +22,7 @@ end
 # Set settings for https://github.com/franciscolourenco/done
 set -U __done_min_cmd_duration 10000
 set -U __done_notification_urgency_level low
-
+set -gx RIPGREP_CONFIG_PATH "$HOME/.ripgreprc"
 
 ## Environment setup
 # Apply .profile: use this to put fish compatible .profile stuff in
@@ -47,7 +47,8 @@ end
 
 ## Starship prompt
 ## if non interactive or not running in ITERM2, don't bother initiliazing
-if status --is-interactive && test -n "$ITERM_PROFILE"
+## INTEGRATED TERM set by ides for runners (we dont need any fancy tui stuff)
+if test -z "$INTEGRATED_TERM" && status --is-interactive && test -n "$ITERM_PROFILE"
    if test -f /usr/bin/starship
     source ("/usr/bin/starship" init fish --print-full-init | psub)
    else if test -f /usr/local/bin/starship
@@ -58,6 +59,13 @@ if status --is-interactive && test -n "$ITERM_PROFILE"
        echo "fail!"
        exit 1
    end
+
+## Run paleofetch if session is interactive
+if status --is-interactive
+  if test -n "$ITERM_PROFILE"
+     neofetch
+  end
+end
 end
 
 ## Advanced command-not-found hook
@@ -174,12 +182,6 @@ alias jctl="journalctl -p 3 -xb"
 alias rip="expac --timefmt='%Y-%m-%d %T' '%l\t%n %v' | sort | tail -200 | nl"
 
 
-## Run paleofetch if session is interactive
-if status --is-interactive
-  if test -n "$ITERM_PROFILE"
-     neofetch
-  end
-end
 
 set -p EDITOR vim
 
@@ -246,10 +248,15 @@ switch (uname)
             if test -e /Users/np/.iterm2_shell_integration.fish
               source /Users/np/.iterm2_shell_integration.fish;
             end
-            
-            fish_add_path /opt/homebrew/bin            
+            set -x ANDROID_NDK_HOME '/opt/homebrew/share/android-ndk'
+            set -x ANDROID_NDK '/opt/homebrew/share/android-ndk'
+            set -x ANDROID_SDK_ROOT '/Users/np/Library/Android/sdk'
+            set -x ANDROID_SDK '/Users/np/Library/Android/sdk'
+            fish_add_path /opt/homebrew/bin
             fish_add_path /opt/homebrew/sbin
             fish_add_path "$HOME/Library/Python/3.11/bin"
+            fish_add_path "$HOME/Library/Android/sdk/emulator"
+            fish_add_path "$HOME/Library/Android/sdk/platform-tools"
             alias safari="open -a safari"
             alias firefox="open -a firefox"
             alias opera="open -a opera"
@@ -317,7 +324,9 @@ if test -d "$HOME/.cargo/bin"
   end
 end
 # rvm default
-
+if test -d "$HOME/.rvm/bin"
+  fish_add_path "$HOME/.rvm/bin"
+end
 if test -d ~/esp/xtensa-esp32-elf/bin
   if not contains -- "$HOME/exp/xtensa-esp32-elf/bin"
     set -p PATH "$HOME/esp/xtensa-esp32-elf/bin"
@@ -376,3 +385,27 @@ set -g RUSTC_WRAPPER "cargo install {package}"
 set -g DOTNET_CLI_TELEMETRY_OPTOUT "true"
 
 
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+#if test -f /opt/homebrew/Caskroom/miniconda/base/bin/conda
+#    eval /opt/homebrew/Caskroom/miniconda/base/bin/conda "shell.fish" "hook" $argv | source
+#else
+#    if test -f "/opt/homebrew/Caskroom/miniconda/base/etc/fish/conf.d/conda.fish"
+#        . "/opt/homebrew/Caskroom/miniconda/base/etc/fish/conf.d/conda.fish"
+#    else
+#        set -x PATH "/opt/homebrew/Caskroom/miniconda/base/bin" $PATH
+#    end
+#end
+fish_add_path "$HOME/.mozbuild/git-cinnabar:$PATH"
+# <<< conda initialize <<<
+
+set -gx EMSDK_QUIET 1
+set -gx VCPKG_DISABLE_METRICS 1
+fish_add_path "/Users/np/src/utilities/depot_tools"
+source "/Users/np/src/utilities/emsdk/emsdk_env.fish"
+
+set -gx VCPKG_ROOT "$HOME/vcpkg"
+fish_add_path "$VCPKG_ROOT"
+# Added by LM Studio CLI (lms)
+set -gx PATH $PATH /Users/np/.cache/lm-studio/bin
+rvm default

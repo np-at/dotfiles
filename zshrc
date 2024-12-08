@@ -211,3 +211,7 @@ test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell
 
 export PATH="/opt/homebrew/bin:$PATH"
 export PATH="/opt/homebrew/sbin:$PATH"
+export ANDROID_NDK_HOME="/opt/homebrew/share/android-ndk"
+
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:/Users/np/.cache/lm-studio/bin"

@@ -5,8 +5,33 @@ declare local_keys_path="${HOME}/local_keys"
 declare -i verbose=0
 declare dismount=false
 declare os
+declare remote_vault_mount_point
+declare local_vault_mount_point
+
+
+
+cleanup() {
+	if ${keep}; then
+		log_info "keep flag passed, keeping veracrypt volume mounted"
+		echo "$@"
+	elif ${dismount}; then
+		log_info "mounted vol and copied keys.  dismounting all volumes now (-d flag passed)"
+		veracrypt -t -d
+	else
+		log_verbose "dismounting onedrive veracrypt file, keeping local ssh ssh_keys"
+		if [[ -d '/private/tmp/vc' ]]; then
+			veracrypt -t -d '/private/tmp/vc'
+		else
+			veracrypt -t -d '/tmp/vc'
+		fi
+	fi
+}
+
+
+
 function log_fatal {
 	echo "[FATAL] $1"
+	cleanup "$@"
 	exit 1
 }
 function log_warning {
@@ -103,9 +128,12 @@ fi
 # elevate to root if not already
 if [[ ${EUID} -ne 0 ]]; then
 	case ${os} in
-	darwin) ;&
+	darwin)
+		;&
 
-	linux) ;&
+	linux)
+		;&
+
 
 	wsl)
 		# log_verbose "no need to elevate to root"
@@ -273,52 +301,62 @@ esac
 ### STEP 3: copy ssh keys #######################################################
 
 log_info "copying ssh keys"
-if [[ -e /tmp/vc/config ]]; then
-	sed 's/M\:\/ssh_keys\//~\/\.ssh\//g' /tmp/vc/config |
-		sed 's/C\:\\Windows\\System32\\OpenSSH\\ssh\.exe/ssh/g' |
-		sed 's/\r$//' >"${HOME}/.ssh/config"
-	if [[ ${os} == 'darwin' ]]; then
-		MAC_1P="$(find "${HOME}"/Library/Group\ Containers -type d -name "*1password" 2>/dev/null)"
-		echo "mac_1p is ${MAC_1P}"
 
-		sed -i -E "1i\\
-Host * \\
-    IdentityAgent \"${MAC_1P}/t/agent.sock\"
-                  " "${HOME}/.ssh/config"
-		sed -i -E "1i\\
-Host github.com\\
-    hostname github.com\\
-    user git\\
-    Identityfile ${HOME}/.ssh/np_at_gh2\\
-    IdentityAgent none\\
-" "${HOME}/.ssh/config"
-	fi
-	# set 1Password to handle ssh identities if no-buntu
-	if [[ ${os} == 'linux' ]]; then
-		sed --in-place -e '1i\
-Host * \
-    IdentityAgent ~/.1password/agent.sock
-                  ' "${HOME}/.ssh/config"
-	fi
-	cp -r /tmp/vc/ssh_keys/* "${HOME}/.ssh"
-	# fix permissions
+copy_config() {
 
-	chmod 0600 "${HOME}"/.ssh/*
-else
-	log_fatal "config file was not found"
-fi
-
-if ${keep}; then
-	log_info "keep flag passed, keeping veracrypt volume mounted"
-	echo "$1"
-elif ${dismount}; then
-	log_info "mounted vol and copied keys.  dismounting all volumes now (-d flag passed)"
-	veracrypt -t -d
-else
-	log_verbose "dismounting onedrive veracrypt file, keeping local ssh ssh_keys"
-	if [[ -d '/private/tmp/vc' ]]; then
-		veracrypt -t -d '/private/tmp/vc'
+	declare config_path
+	if [[ -f /tmp/vc/config ]]; then
+		config_path="/tmp/vc/config"
+	elif [[ -f /private/tmp/vc/config ]]; then
+		config_path="/private/tmp/vc/config";
 	else
-		veracrypt -t -d '/tmp/vc'
+		return 1;
 	fi
-fi
+		sed 's/M\:\/ssh_keys\//~\/\.ssh\//g' $config_path |
+			sed 's/C\:\\Windows\\System32\\OpenSSH\\ssh\.exe/ssh/g' |
+			sed 's/\r$//' >"${HOME}/.ssh/config"
+		if [[ ${os} == 'darwin' ]]; then
+			MAC_1P="$(find "${HOME}"/Library/Group\ Containers -type d -name "*1password" 2>/dev/null)"
+			echo "mac_1p is ${MAC_1P}"
+
+			sed -i -E "1i\\
+	Host * \\
+		IdentityAgent \"${MAC_1P}/t/agent.sock\"
+					" "${HOME}/.ssh/config"
+			sed -i -E "1i\\
+	Host github.com\\
+		hostname github.com\\
+		user git\\
+		Identityfile ${HOME}/.ssh/np_at_gh2\\
+		IdentityAgent none\\
+	" "${HOME}/.ssh/config"
+		fi
+		# set 1Password to handle ssh identities if no-buntu
+		if [[ ${os} == 'linux' ]]; then
+			sed --in-place -e '1i\
+	Host * \
+		IdentityAgent ~/.1password/agent.sock
+					' "${HOME}/.ssh/config"
+		fi
+		cp -r /tmp/vc/ssh_keys/* "${HOME}/.ssh"
+		# fix permissions
+
+		chmod 0600 "${HOME}"/.ssh/*
+
+		return 0;
+}
+
+attempt_num=0
+while true; do
+	## veracrypt sometimes releases control before it has completed mounting fs resulting in a not-found error
+	## give it a second to complete
+	sleep 1
+	((attempt_num+=1));
+	if [[ $attempt_num -gt 3 ]]; then
+		log_fatal "unable to find config file"
+	fi
+	copy_config && break;
+done
+
+
+cleanup "$@"
