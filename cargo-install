@@ -1,19 +1,48 @@
-bacon
-bat
-cargo-c
-cargo-info
-cargo-update
-coreutils
-du-dust
-eza
-irust
-mprocs
-nu
-porsmo
-ripgrep
-rtx-cli
-sccache
-speedtest-rs
-wiki-tui
-zellij
-
+bacon v3.3.0:
+    bacon
+bat v0.24.0:
+    bat
+bend-lang v0.2.37:
+    bend
+cargo-c v0.10.5+cargo-0.83.0:
+    cargo-capi
+    cargo-cbuild
+    cargo-cinstall
+    cargo-ctest
+cargo-info v0.7.7:
+    cargo-info
+cargo-update v16.0.0:
+    cargo-install-update
+    cargo-install-update-config
+coreutils v0.0.28:
+    coreutils
+du-dust v1.1.1:
+    dust
+eza v0.20.9:
+    eza
+geckodriver v0.35.0:
+    geckodriver
+hvm v2.0.22:
+    hvm
+irust v1.71.29:
+    irust
+mprocs v0.7.1:
+    mprocs
+nu v0.99.1:
+    nu
+porsmo v0.3.3:
+    porsmo
+ripgrep v14.1.1:
+    rg
+rtx-cli v2024.0.0:
+    rtx
+sccache v0.8.2:
+    sccache
+speedtest-rs v0.2.0:
+    speedtest-rs
+websocat v1.14.0:
+    websocat
+wiki-tui v0.8.2:
+    wiki-tui
+zellij v0.41.2:
+    zellij
